@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Ticker from "@/components/Ticker";
 import ProjectCard from "@/components/ProjectCard";
+import GlobeWrapper from "@/components/GlobeWrapper";
 import { projects } from "@/lib/projects";
 
 export default function HomePage() {
@@ -56,107 +57,21 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Globe placeholder */}
+      {/* Globe */}
       <section className="flex flex-col items-center px-4 pb-24">
         <div
-          className="relative rounded-full globe-glow"
-          style={{
-            width: "min(600px, 100%)",
-            aspectRatio: "1 / 1",
-            background:
-              "radial-gradient(circle at 35% 35%, #162016 0%, #0d130d 40%, #0a0f0a 100%)",
-          }}
+          className="relative globe-glow"
+          style={{ width: "min(550px, 100%)" }}
         >
-          {/* Progress arc ring */}
-          <svg
-            className="absolute inset-0 w-full h-full"
-            viewBox="0 0 600 600"
-            style={{ transform: "rotate(-90deg)" }}
-          >
-            {/* Background ring */}
-            <circle
-              cx="300"
-              cy="300"
-              r="285"
-              fill="none"
-              stroke="rgba(61,220,132,0.08)"
-              strokeWidth="6"
-            />
-            {/* Progress arc — 0.003% of circumference ≈ very small arc */}
-            <circle
-              cx="300"
-              cy="300"
-              r="285"
-              fill="none"
-              stroke="#3ddc84"
-              strokeWidth="6"
-              strokeLinecap="round"
-              strokeDasharray={`${2 * Math.PI * 285 * 0.00003} ${2 * Math.PI * 285}`}
-              style={{ filter: "drop-shadow(0 0 8px rgba(61,220,132,0.8))" }}
-            />
-          </svg>
-
-          {/* Grid overlay - subtle lat/lon lines */}
-          <svg
-            className="absolute inset-0 w-full h-full opacity-10"
-            viewBox="0 0 600 600"
-          >
-            {/* Horizontal lines */}
-            {[150, 200, 250, 300, 350, 400, 450].map((y) => (
-              <line
-                key={y}
-                x1="20"
-                y1={y}
-                x2="580"
-                y2={y}
-                stroke="#3ddc84"
-                strokeWidth="0.5"
-              />
-            ))}
-            {/* Vertical lines */}
-            {[100, 150, 200, 250, 300, 350, 400, 450, 500].map((x) => (
-              <line
-                key={x}
-                x1={x}
-                y1="20"
-                x2={x}
-                y2="580"
-                stroke="#3ddc84"
-                strokeWidth="0.5"
-              />
-            ))}
-          </svg>
-
-          {/* Center content */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8">
-            <div className="w-10 h-10 rounded-full border border-[#3ddc84]/30 flex items-center justify-center mb-4">
-              <svg
-                viewBox="0 0 24 24"
-                className="w-5 h-5 text-[#3ddc84]"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-              </svg>
-            </div>
-            <p className="text-[#7aab8a] text-sm font-medium mb-1">
-              Interactive globe coming soon
-            </p>
-            <p className="text-[#7aab8a]/50 text-xs">
-              Each funded tonne will light up its segment
-            </p>
-          </div>
-
-          {/* Progress indicator */}
-          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0a0f0a]/80 border border-[#3ddc84]/20">
+          <GlobeWrapper fillPercentage={0.003} />
+          {/* Globe updated daily label */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0a0f0a]/80 border border-[#3ddc84]/20 pointer-events-none">
             <span
               className="w-1.5 h-1.5 rounded-full bg-[#3ddc84]"
               style={{ boxShadow: "0 0 6px #3ddc84" }}
             />
-            <span className="text-[#3ddc84] text-xs font-mono">
-              0.003% filled
+            <span className="text-[#3ddc84] text-xs font-mono whitespace-nowrap">
+              0.003% funded · Globe updated daily
             </span>
           </div>
         </div>
