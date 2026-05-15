@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0a0f0a;
+  --foreground: #e8f5e9;
+  --green-primary: #3ddc84;
+  --green-secondary: #7aab8a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .ticker-animate {
+    animation: ticker 40s linear infinite;
+  }
+
+  @keyframes ticker {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .glow-border {
+    box-shadow: 0 0 0 1px rgba(61, 220, 132, 0.2), 0 0 24px rgba(61, 220, 132, 0.08);
+  }
+
+  .glow-border-hover:hover {
+    box-shadow: 0 0 0 1px rgba(61, 220, 132, 0.4), 0 0 32px rgba(61, 220, 132, 0.15);
+  }
+
+  .globe-glow {
+    box-shadow:
+      0 0 0 1px rgba(61, 220, 132, 0.3),
+      0 0 40px rgba(61, 220, 132, 0.15),
+      0 0 80px rgba(61, 220, 132, 0.08),
+      inset 0 0 60px rgba(61, 220, 132, 0.03);
+  }
+}
