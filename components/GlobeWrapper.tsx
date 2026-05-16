@@ -6,19 +6,17 @@ interface GlobeWrapperProps {
   fillPercentage: number;
 }
 
-// Loading placeholder shown while the globe JS bundle loads
 function GlobePlaceholder() {
   return (
     <div
       className="relative w-full rounded-full"
       style={{
         aspectRatio: '1 / 1',
-        background:
-          'radial-gradient(circle at 35% 35%, #162016 0%, #0d130d 40%, #0a0f0a 100%)',
+        background: 'radial-gradient(circle at 35% 35%, #d4e8de 0%, #b8d4c4 40%, #9bc0ae 100%)',
       }}
     >
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-[#3ddc84]/30 border-t-[#3ddc84] animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-[#2d6a4f]/30 border-t-[#2d6a4f] animate-spin" />
       </div>
     </div>
   );

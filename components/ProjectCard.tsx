@@ -9,34 +9,35 @@ export default function ProjectCard({ project }: ProjectCardProps) {
   const isRemoval = project.creditType === "removal";
 
   return (
-    <div className="group relative flex flex-col bg-[#111811] border border-white/8 rounded-2xl p-6 glow-border glow-border-hover transition-all duration-300 hover:-translate-y-0.5">
+    <div
+      className="group flex flex-col bg-white rounded-[12px] p-6 transition-all duration-300 hover:-translate-y-0.5"
+      style={{
+        border: "1px solid #e0e8e0",
+        boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+      }}
+    >
       {/* Credit type badge */}
       <div className="flex items-center justify-between mb-4">
         <span
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-            isRemoval
-              ? "bg-[#3ddc84]/10 text-[#3ddc84] border border-[#3ddc84]/20"
-              : "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-white ${
+            isRemoval ? "bg-[#2d6a4f]" : "bg-[#3d6b8f]"
           }`}
         >
-          <span
-            className={`w-1.5 h-1.5 rounded-full ${isRemoval ? "bg-[#3ddc84]" : "bg-blue-400"}`}
-          />
           {isRemoval ? "Carbon Removal" : "Emissions Avoidance"}
         </span>
-        <span className="text-[#7aab8a] text-xs">{project.registry}</span>
+        <span className="text-[#555f55] text-xs">{project.registry}</span>
       </div>
 
       {/* Project name */}
-      <h3 className="text-[#e8f5e9] font-semibold text-base leading-snug mb-1.5 group-hover:text-white transition-colors">
+      <h3 className="text-[#1a1a1a] font-semibold text-base leading-snug mb-1.5 group-hover:text-[#2d6a4f] transition-colors">
         {project.name}
       </h3>
 
       {/* Region */}
-      <p className="text-[#7aab8a] text-xs mb-3">{project.region}</p>
+      <p className="text-[#555f55] text-xs mb-3">{project.region}</p>
 
       {/* Description */}
-      <p className="text-[#7aab8a] text-sm leading-relaxed flex-1 mb-5">
+      <p className="text-[#555f55] text-sm leading-relaxed flex-1 mb-5">
         {project.description}
       </p>
 
@@ -45,13 +46,13 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         {project.coBenefits.slice(0, 3).map((benefit) => (
           <span
             key={benefit}
-            className="px-2 py-0.5 rounded-md bg-white/5 text-[#7aab8a] text-xs"
+            className="px-2 py-0.5 rounded-md bg-[#f8f9f8] border border-[#e0e8e0] text-[#555f55] text-xs"
           >
             {benefit}
           </span>
         ))}
         {project.coBenefits.length > 3 && (
-          <span className="px-2 py-0.5 rounded-md bg-white/5 text-[#7aab8a]/60 text-xs">
+          <span className="px-2 py-0.5 rounded-md bg-[#f8f9f8] border border-[#e0e8e0] text-[#555f55]/60 text-xs">
             +{project.coBenefits.length - 3}
           </span>
         )}
@@ -60,14 +61,15 @@ export default function ProjectCard({ project }: ProjectCardProps) {
       {/* Price and CTA */}
       <div className="flex items-center justify-between">
         <div>
-          <span className="text-[#e8f5e9] font-bold text-xl">
+          <span className="text-[#1a1a1a] font-bold text-xl">
             £{project.pricePerTonneGbp}
           </span>
-          <span className="text-[#7aab8a] text-xs ml-1">/ tonne</span>
+          <span className="text-[#555f55] text-xs ml-1">/ tonne</span>
         </div>
         <Link
           href={`/project/${project.slug}`}
-          className="px-4 py-2 rounded-full border border-[#3ddc84]/30 text-[#3ddc84] text-sm font-medium hover:bg-[#3ddc84] hover:text-[#0a0f0a] transition-all duration-200"
+          className="px-4 py-2 rounded-full text-[#2d6a4f] text-sm font-medium hover:bg-[#2d6a4f] hover:text-white transition-all duration-200"
+          style={{ border: "1px solid #2d6a4f" }}
         >
           Learn more →
         </Link>

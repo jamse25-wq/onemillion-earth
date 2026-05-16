@@ -75,15 +75,22 @@ export default function PriceCalculator({ project }: PriceCalculatorProps) {
   };
 
   return (
-    <div className="bg-[#111811] border border-white/8 rounded-2xl p-6 glow-border">
-      <h2 className="text-[#e8f5e9] font-semibold text-lg mb-6">
+    <div
+      className="rounded-2xl p-6"
+      style={{
+        border: "1px solid #e0e8e0",
+        boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+        background: "white",
+      }}
+    >
+      <h2 className="text-[#1a1a1a] font-semibold text-lg mb-6">
         Fund this project
       </h2>
 
       <form onSubmit={handleSubmit} noValidate>
         {/* Tonnes selector */}
         <div className="mb-6">
-          <label className="block text-[#7aab8a] text-sm mb-3">
+          <label className="block text-[#555f55] text-sm mb-3">
             How many tonnes?
           </label>
           <div className="flex items-center gap-4 mb-3">
@@ -95,7 +102,7 @@ export default function PriceCalculator({ project }: PriceCalculatorProps) {
               onChange={handleSliderChange}
               className="flex-1 h-1.5 appearance-none rounded-full cursor-pointer"
               style={{
-                background: `linear-gradient(to right, #3ddc84 ${tonnes}%, rgba(61,220,132,0.15) ${tonnes}%)`,
+                background: `linear-gradient(to right, #2d6a4f ${tonnes}%, #e0e8e0 ${tonnes}%)`,
               }}
             />
             <input
@@ -104,34 +111,42 @@ export default function PriceCalculator({ project }: PriceCalculatorProps) {
               max="100"
               value={tonnes}
               onChange={handleInputChange}
-              className="w-16 px-2 py-1.5 rounded-lg bg-[#162016] border border-white/10 text-[#e8f5e9] text-sm text-center focus:outline-none focus:border-[#3ddc84]/40"
+              className="w-16 px-2 py-1.5 rounded-lg text-[#1a1a1a] text-sm text-center focus:outline-none"
+              style={{
+                border: "1px solid #e0e8e0",
+                background: "#f8f9f8",
+              }}
             />
           </div>
-          <p className="text-[#7aab8a]/50 text-xs">
-            1–100 tonnes per transaction
-          </p>
+          <p className="text-[#555f55] text-xs">1–100 tonnes per transaction</p>
         </div>
 
         {/* Price breakdown */}
-        <div className="space-y-3 mb-6 p-4 rounded-xl bg-[#0a0f0a]/60 border border-white/5">
+        <div
+          className="space-y-3 mb-6 p-4 rounded-xl"
+          style={{ background: "#f8f9f8", border: "1px solid #e0e8e0" }}
+        >
           <div className="flex justify-between items-center">
-            <span className="text-[#7aab8a] text-sm">
+            <span className="text-[#555f55] text-sm">
               Carbon cost ({tonnes} {tonnes === 1 ? "tonne" : "tonnes"} ×
               £{project.pricePerTonneGbp})
             </span>
-            <span className="text-[#e8f5e9] text-sm font-medium">
+            <span className="text-[#1a1a1a] text-sm font-medium">
               £{carbonCost.toFixed(2)}
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-[#7aab8a] text-sm">Platform fee (18%)</span>
-            <span className="text-[#e8f5e9] text-sm font-medium">
+            <span className="text-[#555f55] text-sm">Platform fee (18%)</span>
+            <span className="text-[#1a1a1a] text-sm font-medium">
               £{platformFee.toFixed(2)}
             </span>
           </div>
-          <div className="pt-3 border-t border-white/8 flex justify-between items-center">
-            <span className="text-[#e8f5e9] font-semibold">Total</span>
-            <span className="text-[#3ddc84] font-bold text-xl">
+          <div
+            className="pt-3 flex justify-between items-center"
+            style={{ borderTop: "1px solid #e0e8e0" }}
+          >
+            <span className="text-[#1a1a1a] font-semibold">Total</span>
+            <span className="font-bold text-xl" style={{ color: "#2d6a4f" }}>
               £{total.toFixed(2)}
             </span>
           </div>
@@ -149,17 +164,21 @@ export default function PriceCalculator({ project }: PriceCalculatorProps) {
                 className="sr-only"
               />
               <div
-                className={`w-10 h-5 rounded-full transition-colors ${
-                  isAnonymous ? "bg-[#3ddc84]/70" : "bg-white/10"
-                }`}
+                className="w-10 h-5 rounded-full transition-colors"
+                style={{
+                  background: isAnonymous ? "#2d6a4f" : "#e0e8e0",
+                }}
               />
               <div
-                className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                  isAnonymous ? "translate-x-5" : "translate-x-0.5"
-                }`}
+                className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform shadow-sm"
+                style={{
+                  transform: isAnonymous
+                    ? "translateX(20px)"
+                    : "translateX(2px)",
+                }}
               />
             </div>
-            <span className="text-[#7aab8a] text-sm group-hover:text-[#e8f5e9] transition-colors">
+            <span className="text-[#555f55] text-sm group-hover:text-[#1a1a1a] transition-colors">
               Stay anonymous on the leaderboard
             </span>
           </label>
@@ -167,8 +186,9 @@ export default function PriceCalculator({ project }: PriceCalculatorProps) {
           {/* Name */}
           {!isAnonymous && (
             <div>
-              <label className="block text-[#7aab8a] text-xs mb-1.5">
-                Your name <span className="text-[#3ddc84]">*</span>
+              <label className="block text-[#555f55] text-xs mb-1.5">
+                Your name{" "}
+                <span style={{ color: "#2d6a4f" }}>*</span>
               </label>
               <input
                 type="text"
@@ -176,30 +196,39 @@ export default function PriceCalculator({ project }: PriceCalculatorProps) {
                 onChange={(e) => setBuyerName(e.target.value)}
                 placeholder="e.g. Alex Chen"
                 required={!isAnonymous}
-                className="w-full px-3 py-2.5 rounded-lg bg-[#162016] border border-white/10 text-[#e8f5e9] text-sm placeholder:text-[#7aab8a]/30 focus:outline-none focus:border-[#3ddc84]/40"
+                className="w-full px-3 py-2.5 rounded-lg text-[#1a1a1a] text-sm placeholder:text-[#555f55]/40 focus:outline-none"
+                style={{
+                  border: "1px solid #e0e8e0",
+                  background: "white",
+                }}
               />
             </div>
           )}
 
           {/* Organisation */}
           <div>
-            <label className="block text-[#7aab8a] text-xs mb-1.5">
+            <label className="block text-[#555f55] text-xs mb-1.5">
               Organisation{" "}
-              <span className="text-[#7aab8a]/50">(optional)</span>
+              <span className="text-[#555f55]">(optional)</span>
             </label>
             <input
               type="text"
               value={organisation}
               onChange={(e) => setOrganisation(e.target.value)}
               placeholder="e.g. Acme Ltd"
-              className="w-full px-3 py-2.5 rounded-lg bg-[#162016] border border-white/10 text-[#e8f5e9] text-sm placeholder:text-[#7aab8a]/30 focus:outline-none focus:border-[#3ddc84]/40"
+              className="w-full px-3 py-2.5 rounded-lg text-[#1a1a1a] text-sm placeholder:text-[#555f55]/40 focus:outline-none"
+              style={{
+                border: "1px solid #e0e8e0",
+                background: "white",
+              }}
             />
           </div>
 
           {/* Email */}
           <div>
-            <label className="block text-[#7aab8a] text-xs mb-1.5">
-              Email address <span className="text-[#3ddc84]">*</span>
+            <label className="block text-[#555f55] text-xs mb-1.5">
+              Email address{" "}
+              <span style={{ color: "#2d6a4f" }}>*</span>
             </label>
             <input
               type="email"
@@ -207,9 +236,13 @@ export default function PriceCalculator({ project }: PriceCalculatorProps) {
               onChange={(e) => setBuyerEmail(e.target.value)}
               placeholder="you@example.com"
               required
-              className="w-full px-3 py-2.5 rounded-lg bg-[#162016] border border-white/10 text-[#e8f5e9] text-sm placeholder:text-[#7aab8a]/30 focus:outline-none focus:border-[#3ddc84]/40"
+              className="w-full px-3 py-2.5 rounded-lg text-[#1a1a1a] text-sm placeholder:text-[#555f55]/40 focus:outline-none"
+              style={{
+                border: "1px solid #e0e8e0",
+                background: "white",
+              }}
             />
-            <p className="mt-1 text-[#7aab8a]/40 text-xs">
+            <p className="mt-1 text-[#555f55] text-xs">
               For your certificate — never shown publicly
             </p>
           </div>
@@ -217,7 +250,14 @@ export default function PriceCalculator({ project }: PriceCalculatorProps) {
 
         {/* Error message */}
         {error && (
-          <div className="mb-4 px-4 py-3 rounded-lg bg-red-900/20 border border-red-500/20 text-red-400 text-sm">
+          <div
+            className="mb-4 px-4 py-3 rounded-lg text-sm"
+            style={{
+              background: "#fef2f2",
+              border: "1px solid #fecaca",
+              color: "#b91c1c",
+            }}
+          >
             {error}
           </div>
         )}
@@ -226,17 +266,30 @@ export default function PriceCalculator({ project }: PriceCalculatorProps) {
         <button
           type="submit"
           disabled={loading}
-          className={`w-full py-3.5 rounded-full font-semibold text-sm transition-all ${
+          className="w-full py-3.5 rounded-full font-semibold text-sm transition-all"
+          style={
             loading
-              ? "bg-[#3ddc84]/20 text-[#3ddc84]/50 cursor-not-allowed border border-[#3ddc84]/10"
-              : "bg-[#3ddc84] text-[#0a0f0a] hover:bg-[#3ddc84]/90 cursor-pointer"
-          }`}
+              ? {
+                  background: "#f8f9f8",
+                  color: "#555f55",
+                  border: "1px solid #e0e8e0",
+                  cursor: "not-allowed",
+                }
+              : {
+                  background: "#2d6a4f",
+                  color: "white",
+                  cursor: "pointer",
+                  boxShadow: "0 2px 8px rgba(45,106,79,0.25)",
+                }
+          }
         >
-          {loading ? "Redirecting to payment…" : `Proceed to Payment — £${total.toFixed(2)}`}
+          {loading
+            ? "Redirecting to payment…"
+            : `Proceed to Payment — £${total.toFixed(2)}`}
         </button>
 
         {/* Small print */}
-        <p className="mt-4 text-[#7aab8a]/50 text-xs leading-relaxed">
+        <p className="mt-4 text-[#555f55] text-xs leading-relaxed">
           Platform fee covers verification, operations and ongoing project
           monitoring. It is not a carbon cost. All carbon costs are passed
           directly to the registry.
