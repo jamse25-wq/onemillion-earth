@@ -3,8 +3,30 @@ import Ticker from "@/components/Ticker";
 import ProjectCard from "@/components/ProjectCard";
 import GlobeWrapper from "@/components/GlobeWrapper";
 import { projects } from "@/lib/projects";
+import { supabase } from "@/lib/supabase";
 
-export default function HomePage() {
+async function getGlobeSnapshot() {
+  const { data, error } = await supabase
+    .from("globe_snapshot")
+    .select("total_tonnes, total_purchases, fill_percentage")
+    .eq("id", 1)
+    .single();
+
+  if (error || !data) {
+    return { total_tonnes: 0, total_purchases: 0, fill_percentage: 0 };
+  }
+
+  return data;
+}
+
+export default async function HomePage() {
+  const snapshot = await getGlobeSnapshot();
+
+  const totalTonnes = snapshot.total_tonnes ?? 0;
+  const fillPercentage = snapshot.fill_percentage ?? 0;
+
+  const remaining = Math.max(0, 1_000_000 - totalTonnes);
+
   return (
     <div className="flex flex-col">
       {/* Ticker */}
@@ -25,7 +47,8 @@ export default function HomePage() {
           {/* Eyebrow */}
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#3ddc84]/20 bg-[#3ddc84]/5 text-[#3ddc84] text-xs font-medium mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-[#3ddc84] animate-pulse" />
-            2,847 segments claimed — 997,153 remaining
+            {totalTonnes.toLocaleString()} segments claimed —{" "}
+            {remaining.toLocaleString()} remaining
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#e8f5e9] leading-tight tracking-tight text-balance mb-6">
@@ -63,7 +86,7 @@ export default function HomePage() {
           className="relative globe-glow"
           style={{ width: "min(550px, 100%)" }}
         >
-          <GlobeWrapper fillPercentage={0.003} />
+          <GlobeWrapper fillPercentage={fillPercentage} />
           {/* Globe updated daily label */}
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0a0f0a]/80 border border-[#3ddc84]/20 pointer-events-none">
             <span
@@ -71,7 +94,10 @@ export default function HomePage() {
               style={{ boxShadow: "0 0 6px #3ddc84" }}
             />
             <span className="text-[#3ddc84] text-xs font-mono whitespace-nowrap">
-              0.003% funded · Globe updated daily
+              {fillPercentage > 0
+                ? `${fillPercentage.toFixed(4)}% funded`
+                : "0% funded"}{" "}
+              · Globe updated daily
             </span>
           </div>
         </div>
@@ -84,13 +110,13 @@ export default function HomePage() {
             className="text-7xl sm:text-8xl font-bold text-[#3ddc84] tabular-nums"
             style={{ textShadow: "0 0 40px rgba(61,220,132,0.3)" }}
           >
-            2,847
+            {totalTonnes.toLocaleString()}
           </div>
           <p className="mt-3 text-[#7aab8a] text-xl font-medium">
             tonnes funded so far
           </p>
           <p className="mt-2 text-[#7aab8a]/50 text-sm">
-            997,153 remaining to reach one million
+            {remaining.toLocaleString()} remaining to reach one million
           </p>
         </div>
       </section>

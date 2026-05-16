@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { supabase } from "@/lib/supabase";
+import { projects } from "@/lib/projects";
 
 export const metadata: Metadata = {
   title: "Verify",
@@ -6,56 +8,97 @@ export const metadata: Metadata = {
     "Full transparency on every tonne funded through onemillion.earth. Registry links, project breakdowns, and our platform fee statement.",
 };
 
-const projectBreakdowns = [
-  {
-    name: "Efficient Cookstoves for Rural Families",
-    registry: "Gold Standard",
-    registryUrl: "https://www.goldstandard.org",
-    tonnes: 840,
-    totalPassed: 11760,
-    creditType: "Emissions Avoidance",
-  },
-  {
-    name: "Borneo Rainforest Regeneration",
-    registry: "Gold Standard",
-    registryUrl: "https://www.goldstandard.org",
-    tonnes: 620,
-    totalPassed: 13640,
-    creditType: "Carbon Removal",
-  },
-  {
-    name: "Scottish Peatland Restoration",
-    registry: "Woodland Carbon Code",
-    registryUrl: "https://woodlandcarboncode.org.uk",
-    tonnes: 410,
-    totalPassed: 15580,
-    creditType: "Carbon Removal",
-  },
-  {
-    name: "Seagrass Meadow Restoration",
-    registry: "Pending verification",
-    registryUrl: null,
-    tonnes: 247,
-    totalPassed: 11115,
-    creditType: "Carbon Removal",
-  },
-  {
-    name: "Amazon REDD+ Forest Protection",
-    registry: "Verra VCS",
-    registryUrl: "https://verra.org",
-    tonnes: 730,
-    totalPassed: 13140,
-    creditType: "Emissions Avoidance",
-  },
-];
+// Revalidate once per hour — this is a server component
+export const revalidate = 3600;
 
-const TOTAL_TONNES = 2847;
-const TOTAL_PASSED = 65235; // sum of above ≈ £65,235 — close to spec
-const PLATFORM_FEE_RATE = 0.18;
+interface ProjectBreakdownRow {
+  name: string;
+  slug: string;
+  registry: string;
+  registryUrl: string | null;
+  tonnes: number;
+  carbonCost: number;
+  creditType: string;
+}
 
-export default function VerifyPage() {
-  const grossRevenue = Math.round(TOTAL_PASSED / (1 - PLATFORM_FEE_RATE));
-  const platformFeeCollected = grossRevenue - TOTAL_PASSED;
+async function getVerifyData() {
+  // Fetch per-project breakdown from purchases table
+  const { data: purchaseRows, error } = await supabase
+    .from("purchases")
+    .select("project_slug, tonnes, carbon_cost_gbp");
+
+  if (error || !purchaseRows) {
+    // Return zeros — page still renders correctly
+    return {
+      totalTonnes: 0,
+      totalCarbonCost: 0,
+      projectBreakdowns: [] as ProjectBreakdownRow[],
+    };
+  }
+
+  // Aggregate by project_slug
+  const bySlug = new Map<
+    string,
+    { tonnes: number; carbonCost: number }
+  >();
+
+  for (const row of purchaseRows) {
+    const existing = bySlug.get(row.project_slug) ?? {
+      tonnes: 0,
+      carbonCost: 0,
+    };
+    bySlug.set(row.project_slug, {
+      tonnes: existing.tonnes + (row.tonnes ?? 0),
+      carbonCost: existing.carbonCost + (row.carbon_cost_gbp ?? 0),
+    });
+  }
+
+  // Build breakdown rows, merging with projects metadata
+  const projectBreakdowns: ProjectBreakdownRow[] = [];
+
+  for (const project of projects) {
+    const agg = bySlug.get(project.slug);
+    if (!agg || agg.tonnes === 0) continue;
+
+    projectBreakdowns.push({
+      name: project.name,
+      slug: project.slug,
+      registry: project.registry,
+      registryUrl: project.registryUrl,
+      tonnes: agg.tonnes,
+      carbonCost: agg.carbonCost,
+      creditType:
+        project.creditType === "removal"
+          ? "Carbon Removal"
+          : "Emissions Avoidance",
+    });
+  }
+
+  // Sort by tonnes desc
+  projectBreakdowns.sort((a, b) => b.tonnes - a.tonnes);
+
+  const totalTonnes = purchaseRows.reduce(
+    (sum, r) => sum + (r.tonnes ?? 0),
+    0
+  );
+  const totalCarbonCost = purchaseRows.reduce(
+    (sum, r) => sum + (r.carbon_cost_gbp ?? 0),
+    0
+  );
+
+  return { totalTonnes, totalCarbonCost, projectBreakdowns };
+}
+
+export default async function VerifyPage() {
+  const { totalTonnes, totalCarbonCost, projectBreakdowns } =
+    await getVerifyData();
+
+  const PLATFORM_FEE_RATE = 0.18;
+  // Platform fee is 18% on top of carbon cost, so gross = carbon_cost / (1 - 0.18)
+  // But actually: amount_gbp = carbon_cost * (1 + 0.18), fee = amount_gbp - carbon_cost
+  // We store carbon_cost_gbp separately, so platform fee = carbon_cost * 0.18
+  const platformFeeCollected = Math.round(totalCarbonCost * PLATFORM_FEE_RATE);
+  const totalCarbonCostRounded = Math.round(totalCarbonCost);
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
@@ -80,13 +123,13 @@ export default function VerifyPage() {
         {[
           {
             label: "Total tonnes funded",
-            value: TOTAL_TONNES.toLocaleString(),
+            value: totalTonnes.toLocaleString(),
             unit: "t CO₂e",
             highlight: true,
           },
           {
             label: "Passed to registries",
-            value: `£${TOTAL_PASSED.toLocaleString()}`,
+            value: `£${totalCarbonCostRounded.toLocaleString()}`,
             unit: "registry cost",
             highlight: false,
           },
@@ -118,92 +161,98 @@ export default function VerifyPage() {
           Breakdown by project
         </h2>
         <div className="rounded-2xl border border-white/8 overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-white/8 bg-[#111811]">
-                <th className="text-left px-5 py-4 text-[#7aab8a] text-xs font-semibold uppercase tracking-wider">
-                  Project
-                </th>
-                <th className="text-left px-4 py-4 text-[#7aab8a] text-xs font-semibold uppercase tracking-wider hidden sm:table-cell">
-                  Type
-                </th>
-                <th className="text-right px-4 py-4 text-[#7aab8a] text-xs font-semibold uppercase tracking-wider">
-                  Tonnes
-                </th>
-                <th className="text-right px-4 py-4 text-[#7aab8a] text-xs font-semibold uppercase tracking-wider">
-                  Passed to Registry
-                </th>
-                <th className="text-left px-4 py-4 text-[#7aab8a] text-xs font-semibold uppercase tracking-wider hidden md:table-cell">
-                  Registry
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {projectBreakdowns.map((row, i) => (
-                <tr
-                  key={i}
-                  className="border-b border-white/5 last:border-0 hover:bg-white/2 transition-colors"
-                >
-                  <td className="px-5 py-4">
-                    <span className="text-[#e8f5e9] text-sm font-medium">
-                      {row.name}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 hidden sm:table-cell">
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full ${
-                        row.creditType === "Carbon Removal"
-                          ? "bg-[#3ddc84]/10 text-[#3ddc84]"
-                          : "bg-blue-500/10 text-blue-400"
-                      }`}
-                    >
-                      {row.creditType}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 text-right">
-                    <span className="text-[#e8f5e9] tabular-nums text-sm">
-                      {row.tonnes.toLocaleString()}t
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 text-right">
-                    <span className="text-[#3ddc84] tabular-nums text-sm font-medium">
-                      £{row.totalPassed.toLocaleString()}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 hidden md:table-cell">
-                    {row.registryUrl ? (
-                      <a
-                        href={row.registryUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[#7aab8a] text-sm hover:text-[#3ddc84] transition-colors"
-                      >
-                        {row.registry} ↗
-                      </a>
-                    ) : (
-                      <span className="text-[#7aab8a]/50 text-sm">
-                        {row.registry}
-                      </span>
-                    )}
-                  </td>
+          {projectBreakdowns.length === 0 ? (
+            <div className="py-16 text-center text-[#7aab8a]">
+              No purchases yet — be the first to fund a tonne.
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-white/8 bg-[#111811]">
+                  <th className="text-left px-5 py-4 text-[#7aab8a] text-xs font-semibold uppercase tracking-wider">
+                    Project
+                  </th>
+                  <th className="text-left px-4 py-4 text-[#7aab8a] text-xs font-semibold uppercase tracking-wider hidden sm:table-cell">
+                    Type
+                  </th>
+                  <th className="text-right px-4 py-4 text-[#7aab8a] text-xs font-semibold uppercase tracking-wider">
+                    Tonnes
+                  </th>
+                  <th className="text-right px-4 py-4 text-[#7aab8a] text-xs font-semibold uppercase tracking-wider">
+                    Passed to Registry
+                  </th>
+                  <th className="text-left px-4 py-4 text-[#7aab8a] text-xs font-semibold uppercase tracking-wider hidden md:table-cell">
+                    Registry
+                  </th>
                 </tr>
-              ))}
-              {/* Total row */}
-              <tr className="bg-[#111811]">
-                <td className="px-5 py-4 font-semibold text-[#e8f5e9]">
-                  Total
-                </td>
-                <td className="px-4 py-4 hidden sm:table-cell" />
-                <td className="px-4 py-4 text-right font-bold text-[#e8f5e9] tabular-nums">
-                  {TOTAL_TONNES.toLocaleString()}t
-                </td>
-                <td className="px-4 py-4 text-right font-bold text-[#3ddc84] tabular-nums">
-                  £{TOTAL_PASSED.toLocaleString()}
-                </td>
-                <td className="px-4 py-4 hidden md:table-cell" />
-              </tr>
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {projectBreakdowns.map((row, i) => (
+                  <tr
+                    key={i}
+                    className="border-b border-white/5 last:border-0 hover:bg-white/2 transition-colors"
+                  >
+                    <td className="px-5 py-4">
+                      <span className="text-[#e8f5e9] text-sm font-medium">
+                        {row.name}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 hidden sm:table-cell">
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full ${
+                          row.creditType === "Carbon Removal"
+                            ? "bg-[#3ddc84]/10 text-[#3ddc84]"
+                            : "bg-blue-500/10 text-blue-400"
+                        }`}
+                      >
+                        {row.creditType}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 text-right">
+                      <span className="text-[#e8f5e9] tabular-nums text-sm">
+                        {row.tonnes.toLocaleString()}t
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 text-right">
+                      <span className="text-[#3ddc84] tabular-nums text-sm font-medium">
+                        £{Math.round(row.carbonCost).toLocaleString()}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 hidden md:table-cell">
+                      {row.registryUrl ? (
+                        <a
+                          href={row.registryUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[#7aab8a] text-sm hover:text-[#3ddc84] transition-colors"
+                        >
+                          {row.registry} ↗
+                        </a>
+                      ) : (
+                        <span className="text-[#7aab8a]/50 text-sm">
+                          {row.registry}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {/* Total row */}
+                <tr className="bg-[#111811]">
+                  <td className="px-5 py-4 font-semibold text-[#e8f5e9]">
+                    Total
+                  </td>
+                  <td className="px-4 py-4 hidden sm:table-cell" />
+                  <td className="px-4 py-4 text-right font-bold text-[#e8f5e9] tabular-nums">
+                    {totalTonnes.toLocaleString()}t
+                  </td>
+                  <td className="px-4 py-4 text-right font-bold text-[#3ddc84] tabular-nums">
+                    £{totalCarbonCostRounded.toLocaleString()}
+                  </td>
+                  <td className="px-4 py-4 hidden md:table-cell" />
+                </tr>
+              </tbody>
+            </table>
+          )}
         </div>
       </section>
 
@@ -281,7 +330,7 @@ export default function VerifyPage() {
         </div>
         <p className="mt-6 text-[#7aab8a]/50 text-xs">
           Registry batch purchases are reviewed weekly by the founding team.
-          Last updated: May 2025.
+          Data refreshes hourly.
         </p>
       </section>
     </div>
