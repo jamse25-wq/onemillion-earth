@@ -3,7 +3,9 @@ import Stripe from 'stripe'
 import { getProjectBySlug } from '@/lib/projects'
 import { randomUUID } from 'crypto'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2026-04-22.dahlia',
+})
 
 const PLATFORM_FEE_RATE = 0.18
 
@@ -51,7 +53,6 @@ export async function POST(req: NextRequest) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onemillion-earth.vercel.app'
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
       line_items: [
         {
           price_data: {
