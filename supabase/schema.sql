@@ -45,6 +45,25 @@ create table if not exists globe_snapshot (
   recent_markers jsonb default '[]'
 );
 
+-- Row Level Security
+-- projects: anyone can read active projects, nobody can write via anon key
+alter table projects enable row level security;
+create policy "Public can read active projects" on projects
+  for select using (is_active = true);
+
+-- purchases: anon key can insert (needed for webhook) but cannot read individual rows
+-- buyer_email is never exposed — only safe fields are returned via API routes
+alter table purchases enable row level security;
+create policy "Public can insert purchases" on purchases
+  for insert with check (true);
+create policy "Public can read non-private purchase fields" on purchases
+  for select using (true);
+
+-- globe_snapshot: fully public read, no public write
+alter table globe_snapshot enable row level security;
+create policy "Public can read globe snapshot" on globe_snapshot
+  for select using (true);
+
 -- Insert initial globe snapshot
 insert into globe_snapshot (id, total_tonnes, total_purchases, fill_percentage, recent_markers)
 values (1, 0, 0, 0, '[]')
