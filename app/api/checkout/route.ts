@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     const creditTypeLabel =
       project.creditType === 'removal' ? 'carbon removal' : 'emissions avoidance'
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://onemillion-earth.vercel.app'
+    const siteUrl = 'https://onemillion-earth.vercel.app'
 
     const session = await stripe.checkout.sessions.create({
       line_items: [
